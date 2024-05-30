@@ -1,6 +1,4 @@
 import 'package:responsi_123210063_danielhanselc/views/detailAgent.dart';
-import 'package:responsi_123210063_danielhanselc/views/listMap.dart';
-
 import '../models/modelAgents.dart';
 import 'package:flutter/material.dart';
 import '../apiDataSource.dart';
@@ -26,6 +24,7 @@ class _ListAgentState extends State<ListAgent> {
     return Scaffold(
       appBar: AppBar(
         title: Text("List Agent"),
+        backgroundColor: Colors.redAccent,
       ),
       body: _buildListCategories(),
     );
@@ -93,7 +92,7 @@ class _ListAgentState extends State<ListAgent> {
               width: 15,
             ),
             Text(
-              agent.displayName,
+              agent.displayName + ' ' + agent.developerName,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             )
           ],

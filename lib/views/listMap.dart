@@ -1,109 +1,106 @@
-import 'package:responsi_123210063_danielhanselc/views/listAgent.dart';
-
-import '../models/modelMap.dart';
-import '../apiDataSource.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:responsi_123210063_danielhanselc/apiDataSource.dart';
+import 'package:responsi_123210063_danielhanselc/models/modelMap.dart';
 
-class ListMaps extends StatefulWidget {
-  const ListMaps({
-    super.key,
-  });
-
+class MapListPage extends StatefulWidget {
   @override
-  State<ListMaps> createState() => _ListMapsState();
+  _MapListPageState createState() => _MapListPageState();
 }
 
-class _ListMapsState extends State<ListMaps> {
-  late Future<MapsResponse> futureMaps;
+class _MapListPageState extends State<MapListPage> {
+  late Future<MapsResponse> _mapsFuture;
 
   @override
   void initState() {
     super.initState();
-    futureMaps = ApiDataSource.instance.loadMaps();
+    _mapsFuture = ApiDataSource.instance.loadMaps();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("List Map"),
+        title: Text('Valorant Maps'),
+        backgroundColor: Colors.redAccent,
       ),
-      body: _buildListMaps(),
-    );
-  }
-
-  Widget _buildListMaps() {
-    return Container(
-      child: FutureBuilder<MapsResponse>(
-        future: futureMaps,
-        builder: (BuildContext context, AsyncSnapshot<MapsResponse> snapshot) {
-          if (snapshot.hasError) {
-            return _buildError();
-          }
+      body: FutureBuilder<MapsResponse>(
+        future: _mapsFuture,
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return _buildLoading();
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.maps.isEmpty) {
+            return Center(child: Text('No maps found'));
+          } else {
+            final maps = snapshot.data!.maps;
+            return GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 3 / 2,
+              ),
+              itemCount: maps.length,
+              itemBuilder: (context, index) {
+                final map = maps[index];
+                return GestureDetector(
+                  onTap: () {
+                    if (map.displayIcon != null &&
+                        map.displayIcon!.isNotEmpty) {
+                      _launchURL(map.displayIcon!);
+                    }
+                  },
+                  child: Card(
+                    elevation: 4,
+                    margin: EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: map.displayIcon != null &&
+                                  map.displayIcon!.isNotEmpty
+                              ? Image.network(
+                                  map.listViewIcon!,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                )
+                              : Icon(Icons.map, size: 100),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                map.displayName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(map.coordinates),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
           }
-          if (snapshot.hasData) {
-            return _buildSuccess(snapshot.data!);
-          }
-          return _buildLoading();
         },
       ),
     );
   }
 
-  Widget _buildError() {
-    return Center(
-      child: Text("Error loading maps"),
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
-      child: CircularProgressIndicator(),
-    );
-  }
-
-  Widget _buildSuccess(MapsResponse mapsResponse) {
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.8, // Aspect ratio for each item
-      ),
-      itemCount: mapsResponse.data.length,
-      itemBuilder: (BuildContext context, int index) {
-        return _buildItem(mapsResponse.data[index]);
-      },
-    );
-  }
-
-  Widget _buildItem(Maps maps) {
-    return InkWell(
-      onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ListAgent(),
-          )),
-      child: Card(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              height: 150,
-              child: Image.network(
-                maps.displayIcon!,
-                fit: BoxFit.cover,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              maps.displayName,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
+  void _launchURL(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunch(uri.toString())) {
+      await launch(uri.toString());
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 }

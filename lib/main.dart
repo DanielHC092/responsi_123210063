@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:responsi_123210063_danielhanselc/views/homepage.dart';
-import 'package:responsi_123210063_danielhanselc/views/listAgent.dart';
-import 'package:responsi_123210063_danielhanselc/views/listMap.dart';
-import 'package:responsi_123210063_danielhanselc/views/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,11 +13,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,
       ),
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      home: HomePage(),
     );
   }
 }
